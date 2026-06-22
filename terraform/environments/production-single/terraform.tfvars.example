@@ -1,0 +1,6 @@
+# Production Single Node Environment Variables
+# Copy this file to terraform.tfvars and fill in your values
+
+project_id = "your-gcp-project-id"
+region     = "asia-southeast2"
+zone       = "asia-southeast2-a"
