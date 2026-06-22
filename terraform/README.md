@@ -1,8 +1,8 @@
 # LGTM Stack Terraform Modules
 
-Infrastructure as Code untuk deployment LGTM (Loki, Grafana, Tempo, Mimir) observability stack di GCP dengan GCS sebagai backend storage.
+Infrastructure as Code for deploying LGTM (Loki, Grafana, Tempo, Mimir) observability stack on GCP with GCS as backend storage.
 
-## Struktur
+## Structure
 
 ```
 terraform/
@@ -19,43 +19,43 @@ terraform/
     └── startup-ha.sh           # Startup script untuk HA setup
 ```
 
-## Skenario Deployment
+## Deployment Scenarios
 
 ### 1. RnD (Research & Development)
 - **Instance**: 1x n2-standard-4 (spot instance)
-- **Storage**: GCS buckets dengan lifecycle 7 hari
+- **Storage**: GCS buckets with 7-day lifecycle
 - **Use case**: Testing, development, proof of concept
 - **Cost**: Minimal (spot pricing)
 
 ### 2. Production Single Node
 - **Instance**: 1x n2-standard-8 (non-spot)
-- **Storage**: GCS buckets dengan lifecycle 30 hari
+- **Storage**: GCS buckets with 30-day lifecycle
 - **Disk**: 500GB SSD
 - **Use case**: Small to medium production workloads
 - **Features**: Static IP, monitoring
 
 ### 3. Production Multi-Node (High Availability)
 - **Instance**: 3x n2-standard-8 (non-spot)
-- **Storage**: GCS buckets dengan lifecycle 30 hari
+- **Storage**: GCS buckets with 30-day lifecycle
 - **Disk**: 500GB SSD per node
 - **Use case**: High availability production workloads
 - **Features**: 
-  - Load balancer untuk Grafana
-  - Consul untuk service discovery
+  - Load balancer for Grafana
+  - Consul for service discovery
   - Replication factor 3
   - Auto-scaling ready
 
-## Komponen LGTM Stack
+## LGTM Stack Components
 
 ### Loki (Logs)
 - Port: 3100
 - Storage: GCS
-- Retention: 30 hari (configurable)
+- Retention: 30 days (configurable)
 
 ### Grafana (Visualization)
 - Port: 3000
 - Default credentials: admin/admin
-- Pre-configured datasources untuk Loki, Tempo, Mimir
+- Pre-configured datasources for Loki, Tempo, Mimir
 
 ### Tempo (Traces)
 - Port: 3200
@@ -69,7 +69,7 @@ terraform/
 
 ## Prerequisites
 
-1. GCP Project dengan billing enabled
+1. GCP Project with billing enabled
 2. Terraform >= 1.5
 3. gcloud CLI authenticated
 4. Required GCP APIs enabled:
@@ -115,7 +115,7 @@ terraform apply -var="project_id=YOUR_PROJECT_ID" -var="instance_count=3"
 
 ## Outputs
 
-Setiap environment akan output:
+Each environment will output:
 - Instance public IPs
 - Grafana URL
 - Loki URL
@@ -125,7 +125,7 @@ Setiap environment akan output:
 
 ### Accessing Services
 
-Setelah deployment selesai (tunggu ~5 menit untuk startup script):
+After deployment completes (wait ~5 minutes for startup script to finish):
 
 ```bash
 # Get outputs
@@ -146,29 +146,29 @@ curl http://$(terraform output -raw instance_public_ip):9009/ready
 
 ## Customization
 
-### Mengubah Instance Type
+### Change Instance Type
 
-Edit file `main.tf` di environment yang diinginkan:
+Edit the `main.tf` file in your desired environment:
 
 ```hcl
 module "compute" {
-  instance_type = "n2-standard-16"  # Sesuaikan dengan kebutuhan
+  instance_type = "n2-standard-16"  # Adjust to your needs
 }
 ```
 
-### Mengubah Storage Lifecycle
+### Change Storage Lifecycle
 
-Edit file `main.tf`:
+Edit the `main.tf` file:
 
 ```hcl
 module "storage" {
-  lifecycle_age_days = 60  # Ubah retention period
+  lifecycle_age_days = 60  # Change retention period
 }
 ```
 
-### Mengubah Network CIDR
+### Change Network CIDR
 
-Edit file `main.tf`:
+Edit the `main.tf` file:
 
 ```hcl
 module "network" {
@@ -200,7 +200,7 @@ sudo docker-compose restart
 
 ### Backup & Restore
 
-Data disimpan di GCS buckets dengan versioning enabled. Untuk backup:
+Data is stored in GCS buckets with versioning enabled. To backup:
 
 ```bash
 # List backups
@@ -215,7 +215,7 @@ gsutil ls gs://PROJECT_ID-ENV-mimir/
 # Destroy infrastructure
 terraform destroy -var="project_id=YOUR_PROJECT_ID"
 
-# Hapus GCS buckets (optional, HATI-HATI!)
+# Delete GCS buckets (optional, CAUTION!)
 gsutil rm -r gs://PROJECT_ID-ENV-loki
 gsutil rm -r gs://PROJECT_ID-ENV-tempo
 gsutil rm -r gs://PROJECT_ID-ENV-mimir
@@ -242,13 +242,13 @@ gsutil rm -r gs://PROJECT_ID-ENV-grafana
 
 ## Troubleshooting
 
-### Service tidak start
+### Service won't start
 ```bash
 sudo systemctl status docker
 sudo docker-compose -f /opt/lgtm/docker-compose.yml logs
 ```
 
-### Tidak bisa akses dari internet
+### Cannot access from internet
 Check firewall rules:
 ```bash
 gcloud compute firewall-rules list
@@ -264,19 +264,19 @@ gcloud projects get-iam-policy PROJECT_ID \
 
 ## Security Notes
 
-1. Default Grafana password adalah `admin/admin` - **GANTI SEGERA**
-2. Firewall rules membuka port ke 0.0.0.0/0 - sesuaikan dengan IP range internal jika diperlukan
-3. Gunakan Cloud IAP atau VPN untuk akses production
+1. Default Grafana password is `admin/admin` - **CHANGE IMMEDIATELY**
+2. Firewall rules open ports to 0.0.0.0/0 - adjust to internal IP range if needed
+3. Use Cloud IAP or VPN for production access
 4. Enable GCS encryption at rest
-5. Setup audit logging untuk compliance
+5. Setup audit logging for compliance
 
 ## Next Steps
 
-1. Setup monitoring untuk LGTM stack itu sendiri
-2. Configure alerting di Grafana
+1. Setup monitoring for the LGTM stack itself
+2. Configure alerting in Grafana
 3. Setup backup automation
 4. Implement disaster recovery plan
-5. Document dashboards dan queries
-6. Setup log forwarding dari aplikasi ke Loki
-7. Implement distributed tracing dengan Tempo
-8. Configure Prometheus remote write ke Mimir
+5. Document dashboards and queries
+6. Setup log forwarding from applications to Loki
+7. Implement distributed tracing with Tempo
+8. Configure Prometheus remote write to Mimir
